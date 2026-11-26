@@ -1,26 +1,52 @@
 `default_nettype none
 
 module tt_um_juego_reaccion (
-    input  wire [7:0] ui_in,    // Entradas dedicadas (botones, sensores, etc.)
-    output wire [7:0] uo_out,   // Salidas dedicadas (LEDs, segmentos, etc.)
-    input  wire [7:0] uio_in,   // Entradas bidireccionales (cuando uio_oe = 0)
-    output wire [7:0] uio_out,  // Salidas bidireccionales (cuando uio_oe = 1)
-    output wire [7:0] uio_oe,   // Dirección: 1 = salida, 0 = entrada
-    input  wire       ena,      // Habilitación del tile (1 cuando está activo)
+    input  wire [7:0] ui_in,    // Entradas dedicadas
+    output wire [7:0] uo_out,   // Salidas dedicadas
+    input  wire [7:0] uio_in,   // Entradas bidireccionales
+    output wire [7:0] uio_out,  // Salidas bidireccionales
+    output wire [7:0] uio_oe,   // 1 = salida, 0 = entrada
+    input  wire       ena,      // Habilitación del módulo
     input  wire       clk,      // Reloj
-    input  wire       rst_n     // Reset asíncrono activo en bajo (0 = reset)
+    input  wire       rst_n     // Reset activo en bajo (0 = reset)
 );
 
-    // 1. Define la dirección de los pines bidireccionales (uio)
-    // Ejemplo: todos como entrada (0) si no usas uio_out
-    assign uio_oe  = 8'b0000_0000;
-    assign uio_out = 8'b0000_0000;
+    // Señales de E/S del juego
+    wire       btn_react = ui_in[0];
+    wire [6:0] seg;
+    wire       led_1;
+    wire       led_2;
+    wire [3:0] dig_sel;
 
-    // 2. Evita warnings por señales sin usar si no conectas todos los bits
-    wire _unused = &{ena, uio_in, ui_in[7:2], 1'b0};
+    // Salidas dedicadas: 7 segmentos + 1 LED
+    assign uo_out[6:0] = seg;
+    assign uo_out[7]   = led_1;
 
-    // 3. Instancia aquí tu módulo principal y conecta tus submódulos
-    // ...
+    // Salidas bidireccionales: 1 LED en uio_out[0] y 4 dígitos en uio_out[4:1]
+    assign uio_out[0]   = led_2;
+    assign uio_out[4:1] = dig_sel;
+    assign uio_out[7:5] = 3'b000;
+
+    // Habilitar uio[4:0] como salida y uio[7:5] como entrada
+    assign uio_oe = 8'b0001_1111;
+
+    // Evita advertencias por señales no utilizadas
+    wire _unused = &{ena, uio_in, ui_in[7:1], 1'b0};
+
+    // -------------------------------------------------------------------------
+    // Instancia aquí tu lógica (por ejemplo, main.v y los submódulos de src/)
+    // -------------------------------------------------------------------------
+    // Si tus módulos usan reset activo en ALTO, pasa ~rst_n en lugar de rst_n.
+    // Ejemplo:
+    // main u_juego (
+    //     .clk      (clk),
+    //     .rst_n    (rst_n),
+    //     .btn      (btn_react),
+    //     .led_1    (led_1),
+    //     .led_2    (led_2),
+    //     .seg      (seg),
+    //     .dig_sel  (dig_sel)
+    // );
 
 endmodule
 
